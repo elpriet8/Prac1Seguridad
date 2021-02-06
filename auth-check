@@ -1,0 +1,139 @@
+#!/bin/bash
+
+input="auth.log"
+inputip=0
+
+function readFile(){
+	while IFS=  read -r line
+	do 
+		if [[ $line == *"$1"* ]]; then
+			if [[ $2 == 1 ]]; then
+				echo $line >> logtemp
+			else
+				if [[ $2 == 2 ]]; then
+					if [[ $line == *"$inputip"* ]]; then
+						echo $line >> logtemp
+					fi
+				fi
+			fi
+		fi
+	done < "$input"
+}
+
+
+# Part 1, display IP address + num of failed attempts
+function part1(){	
+	#read and filter log file
+	readFile "Failed password for invalid user" 1
+
+	#thorough filter only IPs
+	awk '{ print $13 }' logtemp >> here
+	sort here >> here2
+
+	#echo result
+	echo IP "\t" Number of attempts
+	uniq -c here2 | awk '{print $2"\t| " $1}' | sort -k3 -n -r
+
+	#delete unwanted files
+	rm here2 here logtemp
+}
+
+# Part 2, display datetime + input IP + num of failed attempts
+function part2(){
+	#filter log
+	readFile "Failed password for invalid user" "2"
+
+	# Validates if file logtemp exists
+	if test -f logtemp; then
+		echo DATETIME "           |         " IP
+		awk '{ print $1 " " $2 " " $3 " \t " $13 }' logtemp
+		rm logtemp
+	else
+		echo "La direccion $inputip no tuvo coincidencias"
+	fi
+	
+}
+
+function part3(){
+	#filter log
+	grep ssh auth.log > here
+	grep root here > here2
+	grep Failed here2 > here3
+
+	while IFS=  read -r line
+	do
+		if [[ $line == *"Failed password for root"* ]]; then
+			if [[ $line != *"message repeated"* ]]; then
+				echo $line >> here4
+			fi
+		fi
+	done < "here3"
+
+	awk '{ print $1 " " $2 " " $3 " " $11 }' here4 >> failroots
+	
+	echo "Root Failed Attempts"
+	echo "DATETIME 	          IP"
+	sort -u -k4 failroots
+	rm here here2 here3 here4 failroots
+}
+
+# Check arguments
+case $# in
+
+	1)
+		if [[ $1 == '-f' ]]; then
+			part1
+		else
+			if [[ $1 == '-r' ]]; then
+				part3 
+			else
+				echo "Command not found $1"
+			fi
+		fi
+		;;
+
+	2)
+		if [[ $1 == '-f' && $2 == '--ip' ]]; then
+			if [[ -z "$3" ]]; then
+				echo "Missing IP address parameter to use '--ip'"
+			else
+				inputip=$3
+				part2
+			fi
+		else
+			echo "Command not found $1 $2"
+		fi
+		;;
+	3)
+		if [[ $1 == '-f' && $2 == '--ip' ]]; then
+			inputip=$3
+			part2
+		else
+			echo "Command not found $1 $2 $3"
+		fi
+		;;
+	*)
+		echo " '-f' -> Failed login attempts "
+		echo " '-f --ip xxx.xxx.xxx.xxx -> Failed login attempts specific ip"
+		echo " '-r' -> Failed root access attempts"
+		;;
+
+	esac
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
