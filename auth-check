@@ -1,11 +1,14 @@
+
 #!/bin/bash
 
 input="auth.log"
 inputip=0
 
 function readFile(){
+	# reading auth.logx
 	while IFS=  read -r line
 	do 
+		# validate options for filter
 		if [[ $line == *"$1"* ]]; then
 			if [[ $2 == 1 ]]; then
 				echo $line >> logtemp
@@ -60,6 +63,7 @@ function part3(){
 	grep root here > here2
 	grep Failed here2 > here3
 
+	# reading file
 	while IFS=  read -r line
 	do
 		if [[ $line == *"Failed password for root"* ]]; then
@@ -69,11 +73,15 @@ function part3(){
 		fi
 	done < "here3"
 
+	# filter only date and ip address
 	awk '{ print $1 " " $2 " " $3 " " $11 }' here4 >> failroots
 	
+	# display sorted and filtered data
 	echo "Root Failed Attempts"
 	echo "DATETIME 	          IP"
 	sort -u -k4 failroots
+
+	# delete unwanted files
 	rm here here2 here3 here4 failroots
 }
 
