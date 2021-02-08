@@ -3,7 +3,7 @@
 wget -q -l 5 -O - $1 > here
 
 grep -E -o "\b[a-zA-Z0-9.-]+@[a-zA-Z0-9.-]+\.[a-zA-Z0-9.-]+\b" here > email_list.txt
-grep -E -o grep -Eo '(http|https)://[^/"]+' here > url_list.txt
+grep -Eo '(http|https)://[^/"]+' here > url_list.txt
 rm here
 
 
